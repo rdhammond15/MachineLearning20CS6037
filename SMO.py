@@ -3,20 +3,27 @@
 
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
+
 import numpy as np
+
 
 class Smo(object):
     def __init__(self, x, y, epsilon):
         """
-        Initialize the algorthim with the training data
+        Initialize the algorithm with the training data
         
         @param x: The vector of training data
-        @param y: The vector of lables
+        @param y: The vector of labels
         """
-        self.size = x.shape[0]
+        self.size = np.shape[x]
         self.alpha = self.init_alpha()
+        self.alpha2_old = None
+        self.i1 = None
+        self.i2 = None
         self.w = self.calc_weight()
         self.b = 0
+        self.x = x
+        self.y = y
         self.epsilon = epsilon
 
     def init_alpha(self):
@@ -25,13 +32,13 @@ class Smo(object):
         
         @return An array of alphas
         """
-        alphas = numpy.random.randint(0, 10, self.size)
+        alphas = np.random.randint(0, 10, self.size)
         product = np.dot(alphas, self.y)
         
-        if product == 0
-            return aplphas
+        if product == 0:
+            return alphas
         
-        # figure out how far off from zero we are and adjusct accordingly
+        # figure out how far off from zero we are and adjust accordingly
         adjust_label = 1 if product < 0 else -1
         index = np.where(self.y == adjust_label)[0][0]
         alphas[index] += abs(product)
@@ -39,16 +46,15 @@ class Smo(object):
         
     def calc_weight(self):
         """
-        Generate the weight vector with equation w = sum(αiyixi)
-;
-        
+        Generate the weight vector with equation w = sum(aiyixi)
+
         @return The weight vector
         """
         return np.sum(alpha * y * x for alpha, y, x in zip(self.alpha, self.y, self.x))
 
-    def kernel(i, j):
+    def kernel(self, i, j):
         """
-        Calculates the kernel at the given indeces
+        Calculates the kernel at the given indexes
         
         @param i: first index to use (outer loop)
         @param j: inner loop index
@@ -59,14 +65,14 @@ class Smo(object):
         
     def error(self, i):
         """
-        Claculate difference from label
+        Calculate difference from label
         
         @param i: current index
         """
         sum = 0 
         for j in self.size:
-            sum += self.aplpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j) +
-                self.y[i] - self.y[self.i1]
+            sum += self.alpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j) +
+                                                self.y[i] - self.y[self.i1])
         return sum
         
     def kkt(self, i):
@@ -108,7 +114,7 @@ class Smo(object):
         
     @property
     def k(self):
-        return self.kernel(self.i1, self.i1) + kernel(self.i2, self.i2) - 2*kerenl(self.i1, self.i2)
+        return self.kernel(self.i1, self.i1) + self.kernel(self.i2, self.i2) - 2*self.kernel(self.i1, self.i2)
     
     def run(self):
         """
@@ -123,4 +129,3 @@ class Smo(object):
         # TODO select ai > 0, calculate b
         
         # TODO test for classification and repeat until classified
-        
