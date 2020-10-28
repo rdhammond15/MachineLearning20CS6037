@@ -111,6 +111,26 @@ class Smo(object):
         Update the value of alhpa1 based on alpha 2
         """
         self.alpha[self.i1] = self.alpha[self.i1] + self.y[self.i1] * self.y[self.i2] * (self.alpha2_old - self.alpha[self.i2])
+
+    def calculate_b_from_kkt(self, i):
+        """
+        Get b for the desired index.
+        @return b
+        """
+        # Get kkt for the function because we are solving for b
+        # KKT(i) = a(i){yi(<w,xi> + b) - 1}
+        # KKT(i)/a(i) = {yi(<w,xi> + b) - 1}
+        # (KKT(i)/a(i)) + 1  = {yi(<w,xi> + b)
+        # ((KKT(i)/a(i)) + 1) / yi  =  + b
+        # (((KKT(i)/a(i)) + 1) / yi) - <w,xi>  = b
+        temp_kkt = self.kkt(i)
+        temp_1 = (temp_kkt / self.alpha[i]) + 1
+        temp_2 = temp_1 / self.y[i]
+        temp_3 = temp_2 - np.dot(self.w, self.x[i])
+        return temp_3
+
+
+
         
     @property
     def k(self):
@@ -126,6 +146,12 @@ class Smo(object):
         # ai < epsilon, a1 <-- 0
         self.alpha = map(lambda x: x if x >= self.epsilon else 0, self.alpha)
         
-        # TODO select ai > 0, calculate b
+        # Select ai > 0, calculate b, Step 7
+        # Didn't want to try lambda because this might get large.
+        for i in range(len(alpha)):
+            if alpha[i] > 0:
+                self.alpha[i] = calculate_b_from_kkt(i)
+            else:
+                pass
         
         # TODO test for classification and repeat until classified
