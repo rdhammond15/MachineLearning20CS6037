@@ -1,10 +1,13 @@
 """
 @file SMO algorithm implementation for 20CS6037
 
+python SMO.py <full path to dataset>
+
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
 
 import numpy as np
+import sys
 
 
 class Smo(object):
@@ -129,9 +132,6 @@ class Smo(object):
         temp_3 = temp_2 - np.dot(self.w, self.x[i])
         return temp_3
 
-
-
-        
     @property
     def k(self):
         return self.kernel(self.i1, self.i1) + self.kernel(self.i2, self.i2) - 2*self.kernel(self.i1, self.i2)
@@ -140,18 +140,36 @@ class Smo(object):
         """
         Execute the SMO
         """
+
         self.i1 = self.calc_i1()
         self.i2 = self.calc_i2()
         
         # ai < epsilon, a1 <-- 0
-        self.alpha = map(lambda x: x if x >= self.epsilon else 0, self.alpha)
+        self.alpha = list(map(lambda x: x if x >= self.epsilon else 0, self.alpha))
         
         # Select ai > 0, calculate b, Step 7
         # Didn't want to try lambda because this might get large.
-        for i in range(len(alpha)):
-            if alpha[i] > 0:
-                self.alpha[i] = calculate_b_from_kkt(i)
+        for i in range(len(self.alpha)):
+            if self.alpha[i] > 0:
+                self.alpha[i] = self.calculate_b_from_kkt(i)
             else:
                 pass
         
         # TODO test for classification and repeat until classified
+
+
+if __name__ == '__main__':
+
+    x = []
+    y = []
+    e = []
+
+    with open(sys.argv[1], 'r') as dataset:
+        lines = dataset.readlines()
+        for line in lines:
+            data = [int(line.strip().strip('{}')) for line in line.split()]
+            x.append(data[0])
+            y.append(data[1])
+            e.append(data[2])
+
+    Smo(x, y, e).run()
