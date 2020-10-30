@@ -18,16 +18,16 @@ class Smo(object):
         @param x: The vector of training data
         @param y: The vector of labels
         """
-        self.size = np.shape[x]
-        self.alpha = self.init_alpha()
+        self.size = np.shape(x)
         self.alpha2_old = None
         self.i1 = None
         self.i2 = None
-        self.w = self.calc_weight()
         self.b = 0
         self.x = x
         self.y = y
         self.epsilon = epsilon
+        self.alpha = self.init_alpha()
+        self.w = self.calc_weight()
 
     def init_alpha(self):
         """
