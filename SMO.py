@@ -167,8 +167,7 @@ if __name__ == '__main__':
         lines = dataset.readlines()
         for line in lines:
             data = [int(line.strip().strip('{}')) for line in line.split()]
-            x.append(data[0])
-            # y.append(data[1])
+            x.append(np.array([data[0], data[1]]))
             y.append(data[2])
 
     epsilon = int(sys.argv[2])
