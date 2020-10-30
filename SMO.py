@@ -1,7 +1,7 @@
 """
 @file SMO algorithm implementation for 20CS6037
 
-python SMO.py <full path to dataset>
+python SMO.py <full path to dataset> <epsilon>
 
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
@@ -18,7 +18,7 @@ class Smo(object):
         @param x: The vector of training data
         @param y: The vector of labels
         """
-        self.size = np.shape(x)
+        self.size = np.shape(x)[0]
         self.alpha2_old = None
         self.i1 = None
         self.i2 = None
@@ -43,7 +43,7 @@ class Smo(object):
         
         # figure out how far off from zero we are and adjust accordingly
         adjust_label = 1 if product < 0 else -1
-        index = np.where(self.y == adjust_label)[0][0]
+        index = np.where(self.y == adjust_label)[0]
         alphas[index] += abs(product)
         return alphas
         
@@ -73,7 +73,7 @@ class Smo(object):
         @param i: current index
         """
         sum = 0 
-        for j in self.size:
+        for j in range(self.size):
             sum += self.alpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j) +
                                                 self.y[i] - self.y[self.i1])
         return sum
@@ -162,14 +162,15 @@ if __name__ == '__main__':
 
     x = []
     y = []
-    e = []
 
     with open(sys.argv[1], 'r') as dataset:
         lines = dataset.readlines()
         for line in lines:
             data = [int(line.strip().strip('{}')) for line in line.split()]
             x.append(data[0])
-            y.append(data[1])
-            e.append(data[2])
+            # y.append(data[1])
+            y.append(data[2])
 
-    Smo(x, y, e).run()
+    epsilon = int(sys.argv[2])
+
+    Smo(x, y, epsilon).run()
