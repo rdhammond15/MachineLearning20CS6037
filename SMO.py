@@ -183,8 +183,11 @@ if __name__ == '__main__':
             x.append(np.array([data[0], data[1]]))
             y.append(data[2])
 
-    epsilon = int(sys.argv[2])
+    epsilon = float(sys.argv[2])
     smo_obj = Smo(x,y,epsilon)
-    while not smo_obj.is_classified():
+    iter = 0
+    while not smo_obj.is_classified() and iter < 100:
         smo_obj.run()
+        print(iter)
+        iter = iter + 1
         
