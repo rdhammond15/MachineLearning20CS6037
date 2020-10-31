@@ -144,6 +144,10 @@ class Smo(object):
         self.i1 = self.calc_i1()
         self.i2 = self.calc_i2()
         
+        #find new alphas
+        self.update_alpha1()
+        self.update_alpha2()
+        
         # ai < epsilon, a1 <-- 0
         self.alpha = list(map(lambda x: x if x >= self.epsilon else 0, self.alpha))
 
