@@ -124,8 +124,8 @@ class Smo(object):
         # KKT(i) = a(i){yi(<w,xi> + b) - 1}
         # KKT(i)/a(i) = {yi(<w,xi> + b) - 1}
         # (KKT(i)/a(i)) + 1  = {yi(<w,xi> + b)
-        # ((KKT(i)/a(i)) + 1) / yi  =  + b
-        # (((KKT(i)/a(i)) + 1) / yi) - <w,xi>  = b
+        # ((KKT(i)/a(i)) + 1) / yi  =  <w, xi> + b
+        # (((KKT(i)/a(i)) + 1) / yi) - <w, xi>  = b
         temp_kkt = self.kkt(i)
         temp_1 = (temp_kkt / self.alpha[i]) + 1
         temp_2 = temp_1 / self.y[i]
@@ -151,12 +151,22 @@ class Smo(object):
         # Didn't want to try lambda because this might get large.
         for i in range(len(self.alpha)):
             if self.alpha[i] > 0:
-                self.alpha[i] = self.calculate_b_from_kkt(i)
+                self.b = self.calculate_b_from_kkt(i)
             else:
                 pass
-        
-        # TODO test for classification and repeat until classified
 
+    def is_classified(self):
+        for i in range(self.size):
+            prediction = np.dot(self.w.T, self.x[i]) + self.b
+            if prediction > 0:
+                prediction = 1
+            else:
+                prediction = -1
+            if prediction == self.y[i]:
+                pass
+            else:
+                return False
+        return True
 
 if __name__ == '__main__':
 
@@ -171,5 +181,7 @@ if __name__ == '__main__':
             y.append(data[2])
 
     epsilon = int(sys.argv[2])
-
-    Smo(x, y, epsilon).run()
+    smo_obj = Smo(x,y,epsilon)
+    while not smo_obj.is_classified():
+        smo_obj.run()
+        
