@@ -141,13 +141,13 @@ class Smo(object):
         Execute the SMO
         """
 
-        self.w = self.calc_weight()
-
         self.i1 = self.calc_i1()
         self.i2 = self.calc_i2()
         
         # ai < epsilon, a1 <-- 0
         self.alpha = list(map(lambda x: x if x >= self.epsilon else 0, self.alpha))
+
+        self.w = self.calc_weight()
 
         # Select ai > 0, calculate b, Step 7
         # Didn't want to try lambda because this might get large.
