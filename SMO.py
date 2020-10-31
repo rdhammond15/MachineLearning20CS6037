@@ -14,7 +14,9 @@ import sys
 class Smo(object):
     def __init__(self, x, y, epsilon):
         """
-        Initialize the algorithm with the training data
+        Initialize the algorithm with the training data.
+
+        Set variables that are required to be instantiated.
         
         @param x: The vector of training data
         @param y: The vector of labels
@@ -73,8 +75,8 @@ class Smo(object):
         
     def error(self, i):
         """
-        Calculate difference from label
-        
+        Calculate the error.
+
         @param i: current index
         """
         sum = 0 
@@ -100,7 +102,7 @@ class Smo(object):
         
     def calc_i2(self):
         """
-        Find armgax of error
+        Find argmax of error
         
         @return the max index
         """
@@ -109,19 +111,26 @@ class Smo(object):
     def update_alpha2(self):
         """
         Update the value of alpha 2
+
+        @return None
         """
         self.alpha2_old = self.alpha[self.i2]
         self.alpha[self.i2] = self.alpha[self.i2] + (self.y[self.i2] * self.error(self.i2))/self.k
         
     def update_alpha1(self):
         """
-        Update the value of alhpa1 based on alpha 2
+        Update the value of alpha1 based on alpha 2.
+        
+        Will update the internal state of the class
+        @return None
         """
         self.alpha[self.i1] = self.alpha[self.i1] + self.y[self.i1] * self.y[self.i2] * (self.alpha2_old - self.alpha[self.i2])
 
     def calculate_b_from_kkt(self, i):
         """
         Get b for the desired index.
+        This is likely the problem in the current iteration.
+        We have algebra listed below for what the instructions describe. Although, this does not seem to classify properly.
         @return b
         """
         # Get kkt for the function because we are solving for b
@@ -145,7 +154,7 @@ class Smo(object):
     
     def run(self):
         """
-        Execute the SMO
+        Execute the SMO. This is the main looping portion of the program.
         """
 
         self.i1 = self.calc_i1()
@@ -184,7 +193,10 @@ class Smo(object):
 
 
 if __name__ == '__main__':
-
+    """
+    Here is the runner. This will handle the file that is taken in and then run until classified. 
+    It prints out the iterator for sanities sake to know that it is still running.
+    """
     x = []
     y = []
 
