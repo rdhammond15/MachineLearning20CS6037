@@ -156,14 +156,16 @@ class Smo(object):
                 pass
 
     def is_classified(self):
+        """
+        Check to see if the training data is correctly classified
+        
+        uses the step function for w*x + b
+        """
         for i in range(self.size):
-            prediction = np.dot(self.w.T, self.x[i]) + self.b
-            if prediction > 0:
-                prediction = 1
-            else:
-                prediction = -1
+            prediction = 1 if np.dot(self.w.T, self.x[i]) + self.b > 0 else -1
+
             if prediction == self.y[i]:
-                pass
+                continue
             else:
                 return False
         return True
