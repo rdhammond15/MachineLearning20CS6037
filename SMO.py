@@ -6,6 +6,7 @@ python SMO.py <full path to dataset> <epsilon>
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
@@ -197,6 +198,12 @@ if __name__ == '__main__':
     epsilon = float(sys.argv[2])
     smo_obj = Smo(x,y,epsilon)
     iter = 0
+
+    plt.scatter([p[0] for p in x], [p[1] for p in x], color='red')
+    plt.ylabel('x[1]')
+    plt.xlabel('x[0]')
+    plt.show()
+
     while not smo_obj.is_classified() and iter < 10000:
         smo_obj.run()
         print(iter)
