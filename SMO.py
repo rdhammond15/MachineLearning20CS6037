@@ -44,7 +44,7 @@ class Smo(object):
         # figure out how far off from zero we are and adjust accordingly
         adjust_label = 1 if product < 0 else -1
         index = np.where(self.y == adjust_label)[0]
-        for i in range(size):
+        for i in range(self.size):
             if self.y == adjust_label:
                 index = i
         alphas[index] += abs(product)
@@ -181,6 +181,7 @@ class Smo(object):
                 return False
         return True
 
+
 if __name__ == '__main__':
 
     x = []
@@ -200,4 +201,3 @@ if __name__ == '__main__':
         smo_obj.run()
         print(iter)
         iter = iter + 1
-        
