@@ -43,7 +43,12 @@ class Smo(object):
         
         # figure out how far off from zero we are and adjust accordingly
         adjust_label = 1 if product < 0 else -1
-        index = np.where(self.y == adjust_label)[0]
+        for i, data in enumerate(self.y):
+            if data == adjust_label:
+                index = i
+                break
+        else:
+            raise ValueError("Couldn't find index")
         alphas[index] += abs(product)
         return alphas
         
@@ -74,8 +79,7 @@ class Smo(object):
         """
         sum = 0 
         for j in range(self.size):
-            sum += self.alpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j) +
-                                                self.y[i] - self.y[self.i1])
+            sum += self.alpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j)) + self.y[i] - self.y[self.i1]
         return sum
         
     def kkt(self, i):
@@ -126,11 +130,8 @@ class Smo(object):
         # (KKT(i)/a(i)) + 1  = {yi(<w,xi> + b)
         # ((KKT(i)/a(i)) + 1) / yi  =  <w, xi> + b
         # (((KKT(i)/a(i)) + 1) / yi) - <w, xi>  = b
-        temp_kkt = self.kkt(i)
-        temp_1 = (temp_kkt / self.alpha[i]) + 1
-        temp_2 = temp_1 / self.y[i]
-        temp_3 = temp_2 - np.dot(self.w, self.x[i])
-        return temp_3
+        b_tmp = y - np.dot(self.w.T, self.x.T)
+        return np.mean(b_tmp)
 
     @property
     def k(self):
