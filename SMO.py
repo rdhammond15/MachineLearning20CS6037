@@ -164,7 +164,7 @@ class Smo(object):
         uses the step function for w*x + b
         """
         for i in range(self.size):
-            prediction = 1 if np.dot(self.w.T, self.x[i]) + self.b > 0 else -1
+            prediction = np.sign(np.dot(self.w.T, self.x[i]) + self.b)
 
             if prediction == self.y[i]:
                 continue
