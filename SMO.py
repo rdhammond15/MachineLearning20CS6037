@@ -43,13 +43,12 @@ class Smo(object):
         
         # figure out how far off from zero we are and adjust accordingly
         adjust_label = 1 if product < 0 else -1
-        for i, data in enumerate(self.y):
-            if data == adjust_label:
+        index = np.where(self.y == adjust_label)[0]
+        for i in range(size):
+            if self.y == adjust_label:
                 index = i
-                break
-        else:
-            raise ValueError("Couldn't find index")
         alphas[index] += abs(product)
+        
         return alphas
         
     def calc_weight(self):
@@ -79,8 +78,8 @@ class Smo(object):
         """
         sum = 0 
         for j in range(self.size):
-            sum += self.alpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j)) + self.y[i] - self.y[self.i1]
-        return sum
+            sum += self.alpha[j] * self.y[j] * (self.kernel(self.i1, j) - self.kernel(i, j) + self.y[i]) - self.y[self.i1]
+        return sum 
         
     def kkt(self, i):
         """
@@ -130,8 +129,14 @@ class Smo(object):
         # (KKT(i)/a(i)) + 1  = {yi(<w,xi> + b)
         # ((KKT(i)/a(i)) + 1) / yi  =  <w, xi> + b
         # (((KKT(i)/a(i)) + 1) / yi) - <w, xi>  = b
-        b_tmp = y - np.dot(self.w.T, self.x.T)
-        return np.mean(b_tmp)
+        """temp_kkt = self.kkt(i)
+        temp_1 = (temp_kkt / self.alpha[i]) + 1
+        temp_2 = temp_1 / self.y[i]
+        temp_3 = temp_2 - np.dot(self.w, self.x[i])
+        return temp_3
+        """
+        self.b = self.y[i] - np.matmul(self.w, self.x[i])
+        return self.b
 
     @property
     def k(self):
@@ -191,7 +196,7 @@ if __name__ == '__main__':
     epsilon = float(sys.argv[2])
     smo_obj = Smo(x,y,epsilon)
     iter = 0
-    while not smo_obj.is_classified() and iter < 100:
+    while not smo_obj.is_classified() and iter < 10000:
         smo_obj.run()
         print(iter)
         iter = iter + 1
