@@ -190,6 +190,7 @@ class Smo(object):
                 return False
         return True
 
+
 if __name__ == '__main__':
     """
     Here is the runner. This will handle the file that is taken in and then run until classified. 
@@ -212,4 +213,3 @@ if __name__ == '__main__':
         smo_obj.run()
         print(iter)
         iter = iter + 1
-        
