@@ -154,8 +154,7 @@ class Smo(object):
         for i in range(len(self.alpha)):
             if self.alpha[i] > 0:
                 self.b = self.calculate_b_from_kkt(i)
-            else:
-                pass
+                break
 
     def is_classified(self):
         """
