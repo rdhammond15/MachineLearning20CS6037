@@ -7,17 +7,21 @@ from sklearn.datasets import load_iris
 from sklearn.preprocessing import KBinsDiscretizer
 
 import math
+import pandas
 
 
 class ID3(object):
-    def __init__(self, labels, training_set, bins):
+    def __init__(self, labels, training_set, features, bins):
         """
         @param labels: The labels for the training data
         @param training_set: Training set wich is a list of lists. 
                             The list width tells us how many features and the lenght tells us how many examples.
+        @param features: Names of each feature
         @param bins: How many bins to use for discretizing
         """
         self.labels = labels
+        self.p = self.labels.count(1)
+        self.n = self.labels.count(0)
 
         # descretize the data
         discretizer = KBinsDiscretizer(n_bins=bins, encode='ordinal', strategy='kmeans')
@@ -25,8 +29,23 @@ class ID3(object):
         self.training_set = discretizer.transform(training_set)
 
         # get the set entropy
-        self.entropy_s = self.calc_entropy(self.labels.count(1), self.labels.count(0))
-        print self.entropy_s
+        self.entropy_s = self.calc_entropy(self.p, self.n)
+
+        # create panda out of features and labels
+        df = pandas.DataFrame(self.training_set, columns=features)
+        df.insert(len(features), "labels", self.labels, True)
+
+        # for each feature create a data frame containing positive and negative counts for each value
+        feature_ratios = []
+        for feature in features:
+            value_df = pandas.DataFrame()
+            for k, v in df.groupby(feature):
+                value_labels = v['labels'].value_counts()
+                n = value_labels.get(0,0)
+                p = value_labels.get(1,0)
+                entropy = self.calc_entropy(p, n)
+                value_df = value_df.append({"value": k, "n": n, "p": p, "entropy": entropy}, ignore_index=True)
+            feature_ratios.append(value_df)
 
 
     def calc_entropy(self, p, n):
@@ -36,9 +55,11 @@ class ID3(object):
         @param p: Number of postivie examples
         @param n: Number of negative examples
 
-        @return The entryopy
+        @return The entropy
         """
-        return ((-p/float(p +n))*math.log(p/float(p+n), 2)) - ((n/float(p+n)*math.log(n/float(p+n), 2)))
+        if not p or not n:
+            return 0
+        return ((-p/float(p + n))*math.log(p/float(p+n), 2)) - ((n/float(p+n)*math.log(n/float(p+n), 2)))
 
 
 if __name__ == "__main__":
@@ -47,4 +68,4 @@ if __name__ == "__main__":
     # we are intrested in setosa or not so modify the label
     setosa = map(lambda x: 0 if not x else 1, iris.target)
 
-    id3 = ID3(setosa, iris.data, 5)
+    id3 = ID3(setosa, iris.data, iris.feature_names, 5)
