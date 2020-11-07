@@ -47,6 +47,19 @@ class ID3(object):
                 value_df = value_df.append({"value": k, "n": n, "p": p, "entropy": entropy}, ignore_index=True)
             feature_ratios.append(value_df)
 
+        # calculate average average information for each feature
+        avg_info = []
+        for feature in feature_ratios:
+            avg_info.append(self.average_info(feature))
+
+        # use the set entropy - avg_info to get gain
+        gain = []
+        for info in avg_info:
+            gain.append(self.entropy_s - info)
+
+        # largest gain is root node
+        root = max(enumerate(gain), key=lambda x: x[1])
+
 
     def calc_entropy(self, p, n):
         """
@@ -60,7 +73,21 @@ class ID3(object):
         if not p or not n:
             return 0
         return ((-p/float(p + n))*math.log(p/float(p+n), 2)) - ((n/float(p+n)*math.log(n/float(p+n), 2)))
+    
 
+    def average_info(self, df):
+        """
+        Calculate the average information sumation of (pvalue + nvalue/ p + n) * entropy(value)
+        
+        @param df: Dataframe with p, n, and entropy 
+
+        @return the average infromation
+        """
+        info = 0
+        for _, row in df.iterrows():
+            info += (row['p'] + row['n'])/float(self.p + self.n) * row['entropy']
+
+        return info
 
 if __name__ == "__main__":
     iris = load_iris()
