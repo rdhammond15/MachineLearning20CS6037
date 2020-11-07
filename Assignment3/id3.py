@@ -19,21 +19,29 @@ class ID3(object):
         @param features: Names of each feature
         @param bins: How many bins to use for discretizing
         """
-        self.labels = labels
-        self.p = self.labels.count(1)
-        self.n = self.labels.count(0)
-
         # descretize the data
         discretizer = KBinsDiscretizer(n_bins=bins, encode='ordinal', strategy='kmeans')
         discretizer.fit(training_set)
         self.training_set = discretizer.transform(training_set)
 
-        # get the set entropy
-        self.entropy_s = self.calc_entropy(self.p, self.n)
-
         # create panda out of features and labels
         df = pandas.DataFrame(self.training_set, columns=features)
-        df.insert(len(features), "labels", self.labels, True)
+        df.insert(len(features), "labels", labels, True)
+        self.tree = self.find_node(df)
+
+
+    def find_node(self, df):
+        """
+        Recursively build each node
+
+        @param df: The dataframe representing the current set to caluclate entropy on
+        
+        rparam node: The current node to create
+        """
+        label_counts = df['labels'].value_counts()
+        self.p = label_counts.get(1, 0)
+        self.n = label_counts.get(0, 0)
+        self.entropy = self.calc_entropy(self.p, self.n)
 
         # for each feature create a data frame containing positive and negative counts for each value
         feature_ratios = []
@@ -47,7 +55,7 @@ class ID3(object):
                 value_df = value_df.append({"value": k, "n": n, "p": p, "entropy": entropy}, ignore_index=True)
             feature_ratios.append(value_df)
 
-        # calculate average average information for each feature
+        # calculate average information for each feature
         avg_info = []
         for feature in feature_ratios:
             avg_info.append(self.average_info(feature))
@@ -55,10 +63,10 @@ class ID3(object):
         # use the set entropy - avg_info to get gain
         gain = []
         for info in avg_info:
-            gain.append(self.entropy_s - info)
+            gain.append(self.entropy - info)
 
         # largest gain is root node
-        root = max(enumerate(gain), key=lambda x: x[1])
+        node = max(enumerate(gain), key=lambda x: x[1])
 
 
     def calc_entropy(self, p, n):
@@ -88,6 +96,24 @@ class ID3(object):
             info += (row['p'] + row['n'])/float(self.p + self.n) * row['entropy']
 
         return info
+
+
+class Node(object):
+    def __init__(self, attribute, values):
+        """
+        Initialize a node of a tree
+
+        @param feature: The name of the node
+        @param values: The values a feature can take along with a node object {value: node}
+        """
+        self.node = attribute
+        self.branches = values
+    
+    def __str__(self):
+        msg = self.node + "branches to "
+        for k, v in branches:
+            msg += str(k) + "with node" + str(v)
+        return msg
 
 if __name__ == "__main__":
     iris = load_iris()
