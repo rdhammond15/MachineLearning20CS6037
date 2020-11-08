@@ -35,7 +35,7 @@ class ID3(object):
         Recursively build each node
 
         @param df: The dataframe representing the current set to caluclate entropy on
-        
+
         rparam node: The current node to create
         """
         label_counts = df['labels'].value_counts()
@@ -44,6 +44,7 @@ class ID3(object):
         self.entropy = self.calc_entropy(self.p, self.n)
 
         # for each feature create a data frame containing positive and negative counts for each value
+        features = df.columns.difference(['labels']).array
         feature_ratios = []
         for feature in features:
             value_df = pandas.DataFrame()
@@ -67,6 +68,20 @@ class ID3(object):
 
         # largest gain is root node
         node = max(enumerate(gain), key=lambda x: x[1])
+
+        # recurse for each branch of this node
+        branches = {}
+        for value in feature_ratios[node[0]]:
+            # able to classify at this point
+            if value['entropy'] == 0:
+                branches[value['value']] = 1 if value['p'] else 0
+            else:
+                # figure out next node with respect to current value
+                df_split = df.loc[df[features[node[0]]]] == value['value']
+                del df_split[features[node[0]]]
+                branches[value['value']] = self.find_node(df_split)
+
+        return Node(features[node[0]], branches)
 
 
     def calc_entropy(self, p, n):
@@ -111,7 +126,7 @@ class Node(object):
     
     def __str__(self):
         msg = self.node + "branches to "
-        for k, v in branches:
+        for k, v in self.branches:
             msg += str(k) + "with node" + str(v)
         return msg
 
