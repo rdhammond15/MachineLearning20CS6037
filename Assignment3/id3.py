@@ -71,7 +71,7 @@ class ID3(object):
 
         # recurse for each branch of this node
         branches = {}
-        for value in feature_ratios[node[0]]:
+        for _, value in feature_ratios[node[0]].iterrows():
             # able to classify at this point
             if value['entropy'] == 0:
                 branches[value['value']] = 1 if value['p'] else 0
@@ -125,10 +125,10 @@ class Node(object):
         self.branches = values
     
     def __str__(self):
-        msg = self.node + "branches to "
-        for k, v in self.branches:
-            msg += str(k) + "with node" + str(v)
-        return msg
+        msg = []
+        for k, v in self.branches.iteritems():
+            msg.append(str(k) + " with node " + str(v))
+        return self.node + " branches to " + " and ".join(msg)
 
 if __name__ == "__main__":
     iris = load_iris()
@@ -137,3 +137,4 @@ if __name__ == "__main__":
     setosa = map(lambda x: 0 if not x else 1, iris.target)
 
     id3 = ID3(setosa, iris.data, iris.feature_names, 5)
+    print id3.tree
