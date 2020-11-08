@@ -5,6 +5,7 @@
 """
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import KBinsDiscretizer
+from sklearn.model_selection import train_test_split
 
 import math
 import pandas
@@ -37,7 +38,7 @@ class ID3(object):
         if not isinstance(next_node, Node):
             return next_node
         else:
-            return classify(next_node, instance)
+            return ID3.classify(next_node, instance)
 
 
     def find_node(self, df):
@@ -146,17 +147,29 @@ if __name__ == "__main__":
     # we are intrested in setosa or not so modify the label
     labels = map(lambda x: 0 if not x else 1, iris.target)
 
+    # get training and test sets
+    prop_train, prop_test, label_train, label_test = train_test_split(iris.data, labels, test_size=.5, random_state=5)
+
     # descretize the data
-    training_set = iris.data
+    training_set = prop_train
     discretizer = KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='kmeans')
     discretizer.fit(training_set) 
 
     # create panda out of features and labels
     features = iris.feature_names
-    df = pandas.DataFrame(discretizer.transform(training_set), columns=features)
-    df.insert(len(features), "labels", labels, True)
+    df_train = pandas.DataFrame(discretizer.transform(training_set), columns=features)
+    df_train.insert(len(features), "labels", label_train, True)
 
-    id3 = ID3(df)
+    id3 = ID3(df_train)
     print id3.tree
-    test = df.loc[100]
-    print "Classified as {} actual {}".format(id3.classify(id3.tree, test), test['labels'])
+
+    # validate the training set
+    discretizer.fit(prop_test)
+    df_test = pandas.DataFrame(discretizer.transform(prop_test), columns=features)
+    df_test.insert(len(features), "labels", label_test, True)
+
+    test_res = []
+    for row in df_test.iterrows():
+        test_res.append(id3.classify(id3.tree, row[1]) == row[1]['labels'])
+
+    print "ID3 Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
