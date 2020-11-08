@@ -11,7 +11,7 @@ import pandas
 
 
 class ID3(object):
-    def __init__(self, labels, training_set, features, bins):
+    def __init__(self, df):
         """
         @param labels: The labels for the training data
         @param training_set: Training set wich is a list of lists. 
@@ -19,15 +19,25 @@ class ID3(object):
         @param features: Names of each feature
         @param bins: How many bins to use for discretizing
         """
-        # descretize the data
-        discretizer = KBinsDiscretizer(n_bins=bins, encode='ordinal', strategy='kmeans')
-        discretizer.fit(training_set)
-        self.training_set = discretizer.transform(training_set)
-
-        # create panda out of features and labels
-        df = pandas.DataFrame(self.training_set, columns=features)
-        df.insert(len(features), "labels", labels, True)
         self.tree = self.find_node(df)
+
+
+    @staticmethod
+    def classify(node, instance):
+        """
+        Given an instance tell weather it is setosa or not
+
+        @param instance: The data to classify in form of a panda
+        
+        @return True if flower other than setosa or False if setosa
+        """
+        branch = instance[node.name]
+        next_node = node.branches[branch]
+
+        if not isinstance(next_node, Node):
+            return next_node
+        else:
+            return classify(next_node, instance)
 
 
     def find_node(self, df):
@@ -118,23 +128,35 @@ class Node(object):
         """
         Initialize a node of a tree
 
-        @param feature: The name of the node
+        @param attribute: The name of the node
         @param values: The values a feature can take along with a node object {value: node}
         """
-        self.node = attribute
+        self.name = attribute
         self.branches = values
     
     def __str__(self):
         msg = []
         for k, v in self.branches.iteritems():
             msg.append(str(k) + " with node " + str(v))
-        return self.node + " branches to " + " and ".join(msg)
+        return self.name + " branches to " + " and ".join(msg)
 
 if __name__ == "__main__":
     iris = load_iris()
 
     # we are intrested in setosa or not so modify the label
-    setosa = map(lambda x: 0 if not x else 1, iris.target)
+    labels = map(lambda x: 0 if not x else 1, iris.target)
 
-    id3 = ID3(setosa, iris.data, iris.feature_names, 5)
+    # descretize the data
+    training_set = iris.data
+    discretizer = KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='kmeans')
+    discretizer.fit(training_set) 
+
+    # create panda out of features and labels
+    features = iris.feature_names
+    df = pandas.DataFrame(discretizer.transform(training_set), columns=features)
+    df.insert(len(features), "labels", labels, True)
+
+    id3 = ID3(df)
     print id3.tree
+    test = df.loc[100]
+    print "Classified as {} actual {}".format(id3.classify(id3.tree, test), test['labels'])
