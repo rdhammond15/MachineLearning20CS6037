@@ -150,6 +150,57 @@ class Node(object):
             msg.append(str(k) + " with node " + str(v))
         return self.name + " branches to " + " and ".join(msg)
 
+
+class ROC(object):
+    def __init__(self):
+        """
+        Object for Receiver operating characteristic to measure the accuracy of classifier
+        """
+        self.stats = []
+
+    def add_results(self, expected, actual, bin):
+        """
+        Add test results
+
+        @param expected: The labels for the training data
+        @param actual: What the classifier classified the data as
+        @param bin: The number of bins used for this data
+        """
+        #calculate true positives, true negatives, false positives, and flase negatives
+        tp = 0
+        tn = 0
+        fp = 0
+        fn = 0
+        for expt, act in zip(expected, actual):
+            # test positive values
+            if expt:
+                if act:
+                    tp += 1
+                else:
+                    fn += 1
+            else:
+                if act:
+                    fp += 1
+                else:
+                    tn += 1
+
+        self.stats.append((bin, tp, tn, fp, fn))
+
+    
+    def calc_stats(self):
+        """
+        Calculate the ROC stats after all data has been added with add_results
+        """
+        accuracy_total
+        accuracies = np.array()
+        for bin, tp, tn, fp, fn in self.stats:
+            accuracy = (tp + tn)/float(tp + tn + fp + fn)
+            accuracies.append(accuracy)
+            #TODO Plot
+
+        print "Accuracy stats: Average {} Max {} Min {}".format(accuracies.mean(), accuracies.amax(), accuracies.amin())
+
+
 if __name__ == "__main__":
     iris = load_iris()
 
