@@ -38,8 +38,6 @@ class Bayes(object):
     def classify(self, row):
         is_setosa_chance = self.compute_chance(row, 0)
         is_not_setosa_chance = self.compute_chance(row, 1)
-        print(is_setosa_chance)
-        print(is_not_setosa_chance)
 
         if is_setosa_chance > is_not_setosa_chance:
             return 0
@@ -74,9 +72,7 @@ class Bayes(object):
         if label == 0:
             chance = chance * (float(self.total_n) / float((self.total_n + self.total_p)))
         else:
-            print chance
             chance = chance * (float(self.total_p) / float((self.total_n + self.total_p)))
-            print chance
         return chance
 
 if __name__ == "__main__":
