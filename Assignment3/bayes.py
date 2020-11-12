@@ -38,6 +38,9 @@ class Bayes(object):
     def classify(self, row):
         is_setosa_chance = self.compute_chance(row, 0)
         is_not_setosa_chance = self.compute_chance(row, 1)
+        print(is_setosa_chance)
+        print(is_not_setosa_chance)
+
         if is_setosa_chance > is_not_setosa_chance:
             return 0
         else:
@@ -46,10 +49,9 @@ class Bayes(object):
     def compute_chance(self, row, label):
         data_names = row[1].axes[0]
         data_array = row[1].array
-        label = row[1].array[4]
         values = []
         percents = [0,0,0,0]
-        # Don't include the label.
+        # Don't include the label. 
         for i in range(len(data_array) - 1):
             if data_array[i] in self.result_frame[data_names[i]]:
                 values.append(self.result_frame[data_names[i]][data_array[i]])
@@ -72,7 +74,9 @@ class Bayes(object):
         if label == 0:
             chance = chance * (float(self.total_n) / float((self.total_n + self.total_p)))
         else:
+            print chance
             chance = chance * (float(self.total_p) / float((self.total_n + self.total_p)))
+            print chance
         return chance
 
 if __name__ == "__main__":
