@@ -3,9 +3,6 @@
 
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
-from sklearn.datasets import load_iris
-from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.model_selection import train_test_split
 
 import math
 import pandas

@@ -15,7 +15,7 @@ def compute_f_measure(ground_truth, est_targets):
     """
     @param ground_truth: Ground truth values
     @param est_targets: Values returned from a classifier
-    @return: fmeasure for discretization
+    @return: f-measure for discretization
     """
     return f1_score(ground_truth, est_targets)
 
@@ -41,13 +41,13 @@ if __name__ == "__main__":
         df_train = pandas.DataFrame(discretizer.transform(training_set), columns=features)
         df_train.insert(len(features), "labels", label_train, True)
 
-        id3 = id3.ID3(df_train)
-        print id3.tree
-
         # validate the training set
         discretizer.fit(prop_test)
         df_test = pandas.DataFrame(discretizer.transform(prop_test), columns=features)
         df_test.insert(len(features), "labels", label_test, True)
+
+        id3 = id3.ID3(df_train)
+        print id3.tree
 
         test_res = []
         for row in df_test.iterrows():
@@ -55,30 +55,10 @@ if __name__ == "__main__":
 
         print "ID3 Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
 
-    # For each bin
-    for bin in range(5, 25, 5):
-        # descretize the data
-        training_set = prop_train
-        #print(training_set)
-        #for i in range(len(training_set)):
-            #print training_set[i]
-        discretizer = bayes.KBinsDiscretizer(n_bins=bin, encode='ordinal', strategy='kmeans')
-        discretizer.fit(training_set)
-
-        # create panda out of features and labels
-        features = iris.feature_names
-        df_train = pandas.DataFrame(discretizer.transform(training_set), columns=features)
-        df_train.insert(len(features), "labels", label_train, True)
-
         bayes = bayes.Bayes(df_train.values)
-        # validate the training set
-        discretizer.fit(prop_test)
-        df_test = pandas.DataFrame(discretizer.transform(prop_test), columns=features)
-        df_test.insert(len(features), "labels", label_test, True)
 
         test_res = []
         for row in df_test.iterrows():
-            pass
-            #test_res.append(Bayes.classify(id3.tree, row[1]) == row[1]['labels'])
+            test_res.append(bayes.Bayes.classify(bayes.tree, row[1]) == row[1]['labels'])
 
-        #print "ID3 Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
+        print "Bayes Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
