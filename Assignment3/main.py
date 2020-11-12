@@ -111,7 +111,7 @@ if __name__ == "__main__":
         actual = []
         for row in df_test.iterrows():
             actual.append(id3.classify(id3.tree, row[1]))
-        id3_accuracy.add_results(df_teset['labels'], actual, bin)
+        id3_accuracy.add_results(df_test['labels'], actual, bin)
 
         bayes = bayes.Bayes(df_train.values)
 
