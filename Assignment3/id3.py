@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 import math
 import pandas
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class ID3(object):
@@ -188,17 +189,24 @@ class ROC(object):
         self.stats.append((bin, tp, tn, fp, fn))
 
     
-    def calc_stats(self):
+    def calc_stats(self, class_name):
         """
         Calculate the accuracy stats after all data has been added with add_results
+
+        @param class_name: The name of the classifier being used (for labeling charts)
         """
         accuracies = []
         for bin, tp, tn, fp, fn in self.stats:
             accuracy = (tp + tn)/float(tp + tn + fp + fn)
             accuracies.append(accuracy)
-            #TODO Plot
+            plt.scatter(bin, accuracy, color='red')
 
-        print "Accuracy stats: Average {} Max {} Min {}".format(sum(accuracies)/float(len(accuracies)), max(accuracies), min(accuracies))
+        plt.ylabel('Accuracy')
+        plt.xlabel('Number of Bins')
+        plt.suptitle('Bin Accuracy for ' + class_name)
+        plt.show()
+
+        print class_name + " accuracy stats: Average {} Max {} Min {}".format(sum(accuracies)/float(len(accuracies)), max(accuracies), min(accuracies))
 
 
 if __name__ == "__main__":
@@ -236,4 +244,4 @@ if __name__ == "__main__":
             actual.append(id3.classify(id3.tree, row[1]))
         roc.add_results(df_test['labels'], actual, bin)
         
-    roc.calc_stats()
+    roc.calc_stats(id3.__class__.__name__)
