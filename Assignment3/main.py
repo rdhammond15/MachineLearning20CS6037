@@ -14,21 +14,20 @@ import pandas
 import matplotlib.pyplot as plt
 
 
-def compute_f_measure(ground_truth, est_targets):
-    """
-    @param ground_truth: Ground truth values
-    @param est_targets: Values returned from a classifier
-    @return: f-measure for discretization
-    """
-    return f1_score(ground_truth, est_targets)
-
-
 class Accuracy(object):
     def __init__(self):
         """
         Object for measuring the accuracy of classifier
         """
         self.stats = []
+
+    def compute_f_measure(self, expected, actual):
+        """
+        @param expected: Ground truth values
+        @param actual: Values returned from a classifier
+        @return: f-measure for discretization
+        """
+        return f1_score(expected, actual)
 
     def add_results(self, expected, actual, bin):
         """
@@ -56,9 +55,8 @@ class Accuracy(object):
                 else:
                     tn += 1
 
-        self.stats.append((bin, tp, tn, fp, fn))
+        self.stats.append((expected, actual, bin, tp, tn, fp, fn))
 
-    
     def calc_stats(self, class_name):
         """
         Calculate the accuracy stats after all data has been added with add_results
@@ -66,7 +64,7 @@ class Accuracy(object):
         @param class_name: The name of the classifier being used (for labeling charts)
         """
         accuracies = []
-        for bin, tp, tn, fp, fn in self.stats:
+        for _, _, bin, tp, tn, fp, fn in self.stats:
             accuracy = (tp + tn)/float(tp + tn + fp + fn)
             accuracies.append(accuracy)
             plt.scatter(bin, accuracy, color='red')
@@ -74,6 +72,18 @@ class Accuracy(object):
         plt.ylabel('Accuracy')
         plt.xlabel('Number of Bins')
         plt.suptitle('Bin Accuracy for ' + class_name)
+        plt.show()
+
+        # Compute F Measures
+        fmeasures = []
+        for expected, actual, bin, _, _, _, _ in self.stats:
+            fmeasure = self.compute_f_measure(expected, actual)
+            fmeasures.append(fmeasure)
+            plt.scatter(bin, fmeasure, color='red')
+
+        plt.ylabel('FMeasure')
+        plt.xlabel('Number of Bins')
+        plt.suptitle('FMeasure for ' + class_name)
         plt.show()
 
 
