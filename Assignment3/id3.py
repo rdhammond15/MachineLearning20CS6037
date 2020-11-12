@@ -3,14 +3,8 @@
 
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
-from sklearn.datasets import load_iris
-from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.model_selection import train_test_split
-
 import math
 import pandas
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 class ID3(object):
@@ -151,57 +145,3 @@ class Node(object):
         for k, v in self.branches.iteritems():
             msg.append(str(k) + " with node " + str(v))
         return self.name + " branches to " + " and ".join(msg)
-
-
-class ROC(object):
-    def __init__(self):
-        """
-        Object for Receiver operating characteristic to measure the accuracy of classifier
-        """
-        self.stats = []
-
-    def add_results(self, expected, actual, bin):
-        """
-        Add test results
-
-        @param expected: The labels for the training data
-        @param actual: What the classifier classified the data as
-        @param bin: The number of bins used for this data
-        """
-        # calculate true positives, true negatives, false positives, and flase negatives
-        tp = 0
-        tn = 0
-        fp = 0
-        fn = 0
-        for expt, act in zip(expected, actual):
-            # test positive values
-            if expt:
-                if act:
-                    tp += 1
-                else:
-                    fn += 1
-            else:
-                if act:
-                    fp += 1
-                else:
-                    tn += 1
-
-        self.stats.append((bin, tp, tn, fp, fn))
-
-    
-    def calc_stats(self, class_name):
-        """
-        Calculate the accuracy stats after all data has been added with add_results
-
-        @param class_name: The name of the classifier being used (for labeling charts)
-        """
-        accuracies = []
-        for bin, tp, tn, fp, fn in self.stats:
-            accuracy = (tp + tn)/float(tp + tn + fp + fn)
-            accuracies.append(accuracy)
-            plt.scatter(bin, accuracy, color='red')
-
-        plt.ylabel('Accuracy')
-        plt.xlabel('Number of Bins')
-        plt.suptitle('Bin Accuracy for ' + class_name)
-        plt.show()
