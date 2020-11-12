@@ -9,6 +9,7 @@ from sklearn.model_selection import train_test_split
 
 import math
 import pandas
+import numpy as np
 
 
 class ID3(object):
@@ -166,7 +167,7 @@ class ROC(object):
         @param actual: What the classifier classified the data as
         @param bin: The number of bins used for this data
         """
-        #calculate true positives, true negatives, false positives, and flase negatives
+        # calculate true positives, true negatives, false positives, and flase negatives
         tp = 0
         tn = 0
         fp = 0
@@ -189,16 +190,15 @@ class ROC(object):
     
     def calc_stats(self):
         """
-        Calculate the ROC stats after all data has been added with add_results
+        Calculate the accuracy stats after all data has been added with add_results
         """
-        accuracy_total
-        accuracies = np.array()
+        accuracies = []
         for bin, tp, tn, fp, fn in self.stats:
             accuracy = (tp + tn)/float(tp + tn + fp + fn)
             accuracies.append(accuracy)
             #TODO Plot
 
-        print "Accuracy stats: Average {} Max {} Min {}".format(accuracies.mean(), accuracies.amax(), accuracies.amin())
+        print "Accuracy stats: Average {} Max {} Min {}".format(sum(accuracies)/float(len(accuracies)), max(accuracies), min(accuracies))
 
 
 if __name__ == "__main__":
@@ -211,6 +211,7 @@ if __name__ == "__main__":
     prop_train, prop_test, label_train, label_test = train_test_split(iris.data, labels, test_size=.5, random_state=5)
 
     # train and test with different bins
+    roc = ROC()
     for bin in range(5, 25, 5):
         # descretize the data
         training_set = prop_train
@@ -230,8 +231,9 @@ if __name__ == "__main__":
         df_test = pandas.DataFrame(discretizer.transform(prop_test), columns=features)
         df_test.insert(len(features), "labels", label_test, True)
 
-        test_res = []
+        actual = []
         for row in df_test.iterrows():
-            test_res.append(id3.classify(id3.tree, row[1]) == row[1]['labels'])
-
-        print "ID3 Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
+            actual.append(id3.classify(id3.tree, row[1]))
+        roc.add_results(df_test['labels'], actual, bin)
+        
+    roc.calc_stats()
