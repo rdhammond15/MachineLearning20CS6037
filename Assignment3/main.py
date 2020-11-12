@@ -8,6 +8,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 
+
 import bayes
 import id3
 import pandas
@@ -115,20 +116,21 @@ if __name__ == "__main__":
         df_test = pandas.DataFrame(discretizer.transform(prop_test), columns=features)
         df_test.insert(len(features), "labels", label_test, True)
 
-        id3 = id3.ID3(df_train)
-        print id3.tree
+        # It really does not like just being called ID3. Make it happy.
+        id3_obj = id3.ID3(df_train)
+        print id3_obj.tree
 
         test_res = []
         actual = []
         for row in df_test.iterrows():
-            actual.append(id3.classify(id3.tree, row[1]))
+            actual.append(id3_obj.classify(id3_obj.tree, row[1]))
         id3_accuracy.add_results(df_test['labels'], actual, bin)
 
-        bayes = bayes.Bayes(df_train.values)
+        bayes_obj = bayes.Bayes(df_train)
 
         test_res = []
         for row in df_test.iterrows():
-            test_res.append(bayes.Bayes.classify(bayes.tree, row[1]) == row[1]['labels'])
+            test_res.append(bayes_obj.classify(row) == row[1]['labels'])
         bayes_accuracy.add_results(df_test['labels'], actual, bin)
 
         print "Bayes Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
