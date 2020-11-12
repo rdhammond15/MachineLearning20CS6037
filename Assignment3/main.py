@@ -4,7 +4,7 @@
 @authors: Grace Gamstetter, Michael Gentile, and Richard Hammond
 """
 
-from bayes import *
+import bayes
 import id3
 from sklearn.datasets import load_iris
 from sklearn.metrics import f1_score
