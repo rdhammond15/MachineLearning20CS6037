@@ -38,7 +38,7 @@ class Accuracy(object):
         @param actual: What the classifier classified the data as
         @param bin: The number of bins used for this data
         """
-        # calculate true positives, true negatives, false positives, and flase negatives
+        # calculate true positives, true negatives, false positives, and false negatives
         tp = 0
         tn = 0
         fp = 0
@@ -88,6 +88,7 @@ if __name__ == "__main__":
 
     # train and test with different bins
     id3_accuracy = Accuracy()
+    bayes_accuracy = Accuracy()
     for bin in range(5, 25, 5):
         # descretize the data
         training_set = prop_train
@@ -118,7 +119,9 @@ if __name__ == "__main__":
         test_res = []
         for row in df_test.iterrows():
             test_res.append(bayes.Bayes.classify(bayes.tree, row[1]) == row[1]['labels'])
+        bayes_accuracy.add_results(df_test['labels'], actual, bin)
 
         print "Bayes Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
 
-    id3_accuracy.calc_stats()
+    id3_accuracy.calc_stats("ID3")
+    bayes_accuracy.calc_stats("Bayes")
