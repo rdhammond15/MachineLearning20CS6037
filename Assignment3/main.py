@@ -79,8 +79,10 @@ class Accuracy(object):
 
         # Compute F Measures
         fmeasures = []
-        for expected, actual, bin, _, _, _, _ in self.stats:
-            expected = alternate_expected if alternate_expected is not None else expected
+
+        plot_against = self.stats if alternate_expected is None else alternate_expected.stats
+
+        for (_, actual, bin, _, _, _, _), (expected, _, _, _, _, _, _) in zip(self.stats, plot_against):
             fmeasure = self.compute_f_measure(expected, actual)
             fmeasures.append(fmeasure)
             plt.scatter(bin, fmeasure, color='red')
@@ -140,7 +142,7 @@ if __name__ == "__main__":
 
     id3_accuracy.calc_stats("ID3")
     id3_accuracy.calc_f_measure("ID3")
-    id3_accuracy.calc_f_measure("ID3", bayes_accuracy.stats[0], 'Bayes Results')
+    id3_accuracy.calc_f_measure("ID3", bayes_accuracy, 'Bayes Results')
     bayes_accuracy.calc_stats("Bayes")
     id3_accuracy.calc_f_measure("Bayes")
-    id3_accuracy.calc_f_measure("Bayes", id3_accuracy.stats[0], 'ID3 Results')
+    id3_accuracy.calc_f_measure("Bayes", id3_accuracy, 'ID3 Results')
