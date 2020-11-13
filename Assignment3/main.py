@@ -75,16 +75,19 @@ class Accuracy(object):
         plt.suptitle('Bin Accuracy for ' + class_name)
         plt.show()
 
+    def calc_f_measure(self, class_name, alternate_expected=None, alternate_title=None):
+
         # Compute F Measures
         fmeasures = []
         for expected, actual, bin, _, _, _, _ in self.stats:
+            expected = alternate_expected if alternate_expected is not None else expected
             fmeasure = self.compute_f_measure(expected, actual)
             fmeasures.append(fmeasure)
             plt.scatter(bin, fmeasure, color='red')
 
         plt.ylabel('FMeasure')
         plt.xlabel('Number of Bins')
-        plt.suptitle('FMeasure for ' + class_name)
+        plt.suptitle('FMeasure for ' + class_name + '' if alternate_title is None else ' against ' + alternate_title)
         plt.show()
 
 
@@ -136,4 +139,8 @@ if __name__ == "__main__":
         print "Bayes Classified {} out of {} instances correctly".format(test_res.count(1), len(test_res))
 
     id3_accuracy.calc_stats("ID3")
+    id3_accuracy.calc_f_measure("ID3")
+    id3_accuracy.calc_f_measure("ID3", bayes_accuracy.stats[0], 'Bayes Results')
     bayes_accuracy.calc_stats("Bayes")
+    id3_accuracy.calc_f_measure("Bayes")
+    id3_accuracy.calc_f_measure("Bayes", id3_accuracy.stats[0], 'ID3 Results')
