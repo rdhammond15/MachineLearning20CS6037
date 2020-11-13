@@ -92,6 +92,18 @@ class Accuracy(object):
         plt.suptitle('FMeasure for ' + class_name + '' if alternate_title is None else ' against ' + alternate_title)
         plt.show()
 
+    def show_roc(self, class_name):
+        # Stats are already here, don't reinvent the wheel. Only use this after calc_stats
+        # ROC stuff
+        for _, _, bin, tp, tn, fp, fn in self.stats:
+            tpr = tp/(tp + fn)
+            fpr = fp/(fp + tn)
+            plt.plot([0, fpr, 1], [0, tpr, 1], label='{} with {} bins ROC'.format(class_name, bin))
+        plt.legend()
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        plt.title("ROC in relation to Bins")
+        plt.show()
 
 if __name__ == "__main__":
     iris = load_iris()
@@ -146,3 +158,5 @@ if __name__ == "__main__":
     bayes_accuracy.calc_stats("Bayes")
     id3_accuracy.calc_f_measure("Bayes")
     id3_accuracy.calc_f_measure("Bayes", id3_accuracy, 'ID3 Results')
+    bayes_accuracy.show_roc("Bayes")
+    id3_accuracy.show_roc("ID3")

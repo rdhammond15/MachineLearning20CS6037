@@ -13,6 +13,9 @@ import pandas
 class Bayes(object):
 
     def __init__(self, df):
+        """
+        df is the Iris dataset.
+        """
         self.result_frame = {}
         # Feature names are: sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)  labels
         # For each feature
@@ -36,6 +39,8 @@ class Bayes(object):
         
 
     def classify(self, row):
+        # Blind classification
+        # Supply a row.
         is_setosa_chance = self.compute_chance(row, 0)
         is_not_setosa_chance = self.compute_chance(row, 1)
 
@@ -45,6 +50,7 @@ class Bayes(object):
             return 1
     
     def compute_chance(self, row, label):
+        # Compute the chance that the row is the associated label.
         data_names = row[1].axes[0]
         data_array = row[1].array
         values = []
@@ -54,9 +60,7 @@ class Bayes(object):
             if data_array[i] in self.result_frame[data_names[i]]:
                 values.append(self.result_frame[data_names[i]][data_array[i]])
             else:
-                #TODO fix not found stuff.
                 values.append([0,0])
-                #print "Not found"
         # amount of 0 is first in the list, 1 is the second value in the list
         for i in range(len(values)):
             total_amt = values[i][0]+values[i][1]
