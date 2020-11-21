@@ -5,6 +5,30 @@
 """
 import numpy as np
 
+
+class Delta(object):
+    def __init__(self, train, labels):
+        self.train = train 
+        self.labels = labels
+        self.w = np.random.rand(train.shape[1])
+
+    @property
+    def hypothesis(self):
+        """
+        Return the hypotheses using w*x
+        """
+        return self.train.dot(self.w)
+
+    @property
+    def error(self):
+        """
+        Calculate: 1/2(Summation(t - o)^2)
+        
+        @return the error according to the calculation above
+        """
+        return .5 * np.sum(np.square(self.labels - self.hypothesis))
+
+
 def concept(x1, x2):
     """
     The concept that we are trying to fit which is 𝑥1 + 2𝑥2 − 2 > 0
@@ -31,4 +55,6 @@ if __name__ == "__main__":
     training = np.concatenate((np.ones((100, 1)), training), axis=1)
     test = np.concatenate((np.ones((100, 1)), test), axis=1)
 
-
+    delta_rule = Delta(training, y_train)
+    err = delta_rule.error
+    print err
