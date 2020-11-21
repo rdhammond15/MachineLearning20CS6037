@@ -6,7 +6,6 @@
 from sklearn.datasets import load_iris
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import f1_score
 
 
 import bayes
@@ -21,14 +20,6 @@ class Accuracy(object):
         Object for measuring the accuracy of classifier
         """
         self.stats = []
-
-    def compute_f_measure(self, expected, actual):
-        """
-        @param expected: Ground truth values
-        @param actual: Values returned from a classifier
-        @return: f-measure for discretization
-        """
-        return f1_score(expected, actual)
 
     def add_results(self, expected, actual, bin):
         """
@@ -82,8 +73,8 @@ class Accuracy(object):
 
         plot_against = self.stats if alternate_expected is None else alternate_expected.stats
 
-        for (_, actual, bin, _, _, _, _), (expected, _, _, _, _, _, _) in zip(self.stats, plot_against):
-            fmeasure = self.compute_f_measure(expected, actual)
+        for (_, actual, bin, tp, tn, fp, fn), (expected, _, _, _, _, _, _) in zip(self.stats, plot_against):
+            fmeasure = float((2 * tp)) / float((float((2 * tp)) + fp + fn))
             fmeasures.append(fmeasure)
             plt.scatter(bin, fmeasure, color='red')
 
@@ -96,8 +87,8 @@ class Accuracy(object):
         # Stats are already here, don't reinvent the wheel. Only use this after calc_stats
         # ROC stuff
         for _, _, bin, tp, tn, fp, fn in self.stats:
-            tpr = tp/(tp + fn)
-            fpr = fp/(fp + tn)
+            tpr = float(tp)/float((tp + fn))
+            fpr = float(fp)/float((fp + tn))
             plt.plot([0, fpr, 1], [0, tpr, 1], label='{} with {} bins ROC'.format(class_name, bin))
         plt.legend()
         plt.ylabel('True Positive Rate')
