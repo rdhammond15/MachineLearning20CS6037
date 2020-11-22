@@ -6,6 +6,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas
+import time
 
 
 class Delta(object):
@@ -58,26 +59,47 @@ class Delta(object):
         """
         return .5 * np.sum(np.square(self.labels - self.hypothesis))
 
-    def train(self):
+    def train(self, incremental=False):
         """
         Use the training data to find the weights for the features and plot the error
+
+        @param incremental: False if batch learning else True
         """
-        for i in range(1, self.epoch + 1):
-            # accumulate the error
-            delta_w = self.cost()
-            self.w += delta_w
+        if incremental:
+            start = time.time()
+            w_update = 0
+            for i in range(1, self.epoch + 1):
+                for i, x in enumerate(self.data):
+                    for feature_num, feature in enumerate(x):
+                        self.w[feature_num] += self.rate * (self.labels[i] - np.sign(self.w[feature_num] * feature)) * feature
+                        w_update += 1
+            end = time.time()
+            print "Time for incremental {} with {} weight updates".format(end - start, w_update)
+        else:
+            elapsed = 0
+            w_update = 0
+            for i in range(1, self.epoch + 1):
+                # accumulate the error
+                w_update += 1
+                start = time.time()
+                delta_w = self.cost()
+                self.w += delta_w
+                end = time.time()
+                elapsed += end - start
+                plt.figure(1)
+                plt.plot(i, self.error, 'ro')
+
+                # plot the decision boundry peridocially
+                if i in (5, 10, 50, 100):
+                    self.plot_decision_surface(i)
+
+            print "Time for batch {} with {} weight updates".format(elapsed, w_update)
+
             plt.figure(1)
-            plt.plot(i, self.error, 'ro')
-
-            # plot the decision boundry peridocially
-            if i in (5, 10, 50, 100):
-                self.plot_decision_surface(i)
-
-        plt.figure(1)
-        plt.ylabel('Error')
-        plt.xlabel('Epoch')
-        plt.title("Error per Epoch")
-        plt.show()
+            plt.ylabel('Error')
+            plt.xlabel('Epoch')
+            plt.title("Error per Epoch")
+            plt.show()
 
     def plot_decision_surface(self, plot_num, title="Train Data"):
         """
@@ -154,7 +176,11 @@ if __name__ == "__main__":
 
     for rate in (0.5, 0.1, 0.01, 0.001, 0.0001):
         print "Training with learning rate {}".format(rate)
-        delta_rule = Delta(training, y_train, 100, rate)
-        delta_rule.train()
-        delta_rule.load_test_data(test, y_test)
-        delta_rule.test()
+        batch = Delta(training, y_train, 100, rate)
+        incremental = Delta(training, y_train, 100, rate)
+        batch.train()
+        incremental.train(True)
+        batch.load_test_data(test, y_test)
+        incremental.load_test_data(test, y_test)
+        batch.test()
+        incremental.test()
