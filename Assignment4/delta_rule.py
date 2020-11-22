@@ -34,6 +34,13 @@ class Delta(object):
         return self.data.dot(self.w)
 
     @property
+    def predict(self):
+        """
+        Return the hypothesis after sign
+        """
+        return np.sign(self.hypothesis)
+
+    @property
     def error(self):
         """
         Calculate: 1/2(Summation(t - o)^2)
@@ -71,6 +78,14 @@ class Delta(object):
                 plt.plot(negative["x2"].values, negative["x1"].values, "y_")
                 plt.title("Decision Boundry at Epoch %d" % i)       
 
+        # show accuracy stats
+        correct = 0
+        for predicted, y in zip(self.predict, self.labels):
+            if predicted == y:
+                correct +=1 
+        
+        print "Predicted %d correctly out of %d" % (correct, self.labels.shape[0])
+        
         plt.figure(1)
         plt.ylabel('Error')
         plt.xlabel('Epoch')
