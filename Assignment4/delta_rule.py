@@ -1,7 +1,7 @@
 """
 @file Delta rule classification algorithm implementation for 20CS6037
 
-@authors: Richard Hammond
+@author: Richard Hammond
 """
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +10,11 @@ import time
 
 
 class Delta(object):
-    def __init__(self, train, labels, epoch, rate):
+    NORMAL = 0
+    DECAYING = 1
+    ADAPTIVE = 2
+
+    def __init__(self, train, labels, epoch, rate=None, threshold=None, divisor=0.8, multiplier=1.02):
         """
         Initialize the delta training object
 
@@ -18,6 +22,10 @@ class Delta(object):
         @param labels: The labels for the training data
         @param epoch: The number of iteratations to use for training
         @param rate: The learning rate eta
+        @param threshold: Setting this enables incremental rate change. This value determines the increase in
+                          error that triggers a rate decrease.
+        @param divisor: Value smaller than one that the rate gets multiplied by when the error increases by too much
+        @param multiplier: Value greater than one that the rate gets mulitplied when the change in error is not > threshold
         """
         self.labels = labels
         self.data = train 
@@ -26,6 +34,16 @@ class Delta(object):
         self.rate = rate
         self.df = pandas.DataFrame(self.data, columns=['bias', 'x1', 'x2'])
         self.df.insert(3, "labels", labels, True)
+        self.rate_mode = self.NORMAL
+        self.last_error = None
+        self.threshold = threshold
+        self.divisor = divisor
+        self.multiplier = multiplier
+
+        # see if rate mode should really be normal
+        if rate is None:
+            self.rate = 0.5
+            self.rate_mode = self.ADAPTIVE if threshold is not None else self.DECAYING
 
     def load_test_data(self, test, labels):
         """
@@ -83,7 +101,7 @@ class Delta(object):
                 w_update += 1
                 start = time.time()
                 delta_w = self.cost()
-                self.w += delta_w
+                self.update_rate(delta_w)
                 end = time.time()
                 elapsed += end - start
                 plt.figure(1)
@@ -123,7 +141,36 @@ class Delta(object):
         plt.plot(positive["x2"].values, positive["x1"].values, "r+")
         plt.plot(negative["x2"].values, negative["x1"].values, "y_")
         suffix = "at Epoch %d" % plot_num if title == "Train Data" else ""
-        plt.title(title + " Decision Boundry " + suffix)       
+        plt.title(title + " Decision Boundry " + suffix)
+
+    def update_rate(self, delta_w):
+        """
+        Update rate based on the current mode
+
+        @param delta_w: The amount to change the weights by if learning mode and change in error allows
+        """
+        if self.rate_mode == self.DECAYING:
+            self.rate = self.rate * .08
+            print "Mode decaying: decreasing rate to {}".format(self.rate)
+        elif self.rate_mode == self.ADAPTIVE:
+            # check if we can increase the rate
+            if self.last_error is None or (self.error - self.last_error) < self.threshold:
+                self.last_error = self.error
+                self.rate = self.rate * self.multiplier
+                print "Mode adaptive: increasing learning rate to {}".format(self.rate)
+
+            # Change in error is going the wrong way. Dial back the rate.
+            else:
+                self.rate = self.rate * self.divisor
+                self.last_error = self.error
+                
+                print "Mode adaptive: decreasing learning rate to {}".format(self.rate)
+
+                # don't want to update anything so return
+                return
+        
+        # Apply the change in w. Won't get here if incremntal and change in error is too large.
+        self.w += delta_w
 
     def test(self):
         """
@@ -174,13 +221,25 @@ if __name__ == "__main__":
     training = np.concatenate((np.ones((100, 1)), training), axis=1)
     test = np.concatenate((np.ones((100, 1)), test), axis=1)
 
-    for rate in (0.5, 0.1, 0.01, 0.001, 0.0001):
-        print "Training with learning rate {}".format(rate)
-        batch = Delta(training, y_train, 100, rate)
-        incremental = Delta(training, y_train, 100, rate)
-        batch.train()
-        incremental.train(True)
-        batch.load_test_data(test, y_test)
-        incremental.load_test_data(test, y_test)
-        batch.test()
-        incremental.test()
+    # for rate in (0.5, 0.1, 0.01, 0.001, 0.0001):
+    #     print "Training with learning rate {}".format(rate)
+    #     batch = Delta(training, y_train, 100, rate)
+    #     incremental = Delta(training, y_train, 100, rate)
+    #     batch.train()
+    #     incremental.train(True)
+    #     batch.load_test_data(test, y_test)
+    #     incremental.load_test_data(test, y_test)
+    #     batch.test()
+    #     incremental.test()
+
+    # do adaptive and decaying rate modes
+    decaying = Delta(training, y_train, 100)
+    adaptive = Delta(training, y_train, 100, threshold=1.03)
+    print "Training with decaying rate"
+    decaying.train()
+    print "Training with adaptive rate"
+    adaptive.train()
+    decaying.load_test_data(test, y_test)
+    adaptive.load_test_data(test, y_test)
+    decaying.test()
+    adaptive.test()
