@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 """
 @file Delta rule classification algorithm implementation for 20CS6037
 
@@ -40,6 +41,12 @@ class Delta(object):
         self.divisor = divisor
         self.multiplier = multiplier
 
+        # get grid for decision boundry
+        x_min, x_max = self.data[:, 1].min() - 1, self.data[:, 1].max() + 1
+        y_min, y_max = self.data[:, 2].min() - 1, self.data[:, 2].max() + 1
+        self.xx, self.yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                            np.arange(y_min, y_max, 0.1))
+
         # see if rate mode should really be normal
         if rate is None:
             self.rate = 0.5
@@ -53,6 +60,11 @@ class Delta(object):
         self.data = test
         self.df = pandas.DataFrame(self.data, columns=['bias', 'x1', 'x2'])
         self.df.insert(3, "labels", labels, True)
+
+        x_min, x_max = self.data[:, 1].min() - 1, self.data[:, 1].max() + 1
+        y_min, y_max = self.data[:, 2].min() - 1, self.data[:, 2].max() + 1
+        self.xx, self.yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                            np.arange(y_min, y_max, 0.1))
 
     @property
     def hypothesis(self):
@@ -127,19 +139,16 @@ class Delta(object):
         @param mode: Title prefix for the plot
         """
         plt.figure(plot_num)
-        x_data = np.linspace(0, 1, 100)
-        x_in = [[x] for x in x_data]
-        x_axis = np.asarray(x_in)
-        x_axis = np.concatenate((x_in, x_axis), axis=1)
-        x_axis = np.concatenate((np.ones((x_axis.shape[0], 1)), x_axis), axis=1)
-        y_axis = x_axis.dot(self.w)
-        plt.plot(x_data, y_axis, 'b-')
+        x_ravel = self.xx.ravel()
+        predict = np.sign(np.dot(np.c_[np.ones(x_ravel.shape), x_ravel, self.yy.ravel()], self.w)).reshape(self.xx.shape)
+        plt.contourf(self.xx, self.yy, predict, cmap=plt.cm.Paired)
 
-        # split up the data based on label and plot where it lies
+        # plot the actual data points
         positive = self.df.loc[self.df['labels'] == 1]
         negative = self.df.loc[self.df['labels'] == -1]
-        plt.plot(positive["x2"].values, positive["x1"].values, "r+")
-        plt.plot(negative["x2"].values, negative["x1"].values, "y_")
+        plt.plot(positive["x2"].values, positive["x1"].values, "w+")
+        plt.plot(negative["x2"].values, negative["x1"].values, "b_")
+
         suffix = "at Epoch %d" % plot_num if title == "Train Data" else ""
         plt.title(title + " Decision Boundry " + suffix)
 
@@ -209,6 +218,12 @@ def concept(x1, x2):
 
 if __name__ == "__main__":
     # generate repeatable random data
+    """
+    1c. Training rate of .5 gave pretty good results, but was a litte to aggresive with 100 epochs.
+        A training rate of .1 seemed to perform the best as it didn't slow the algorithm down too much, 
+        and it was more stable than .5. All the rates lower than .1 needed more than 100 epochs to 
+        converge.
+    """
     np.random.seed(139)
     training = np.random.rand(100, 2)
     test = np.random.rand(100, 2)
@@ -221,16 +236,16 @@ if __name__ == "__main__":
     training = np.concatenate((np.ones((100, 1)), training), axis=1)
     test = np.concatenate((np.ones((100, 1)), test), axis=1)
 
-    # for rate in (0.5, 0.1, 0.01, 0.001, 0.0001):
-    #     print "Training with learning rate {}".format(rate)
-    #     batch = Delta(training, y_train, 100, rate)
-    #     incremental = Delta(training, y_train, 100, rate)
-    #     batch.train()
-    #     incremental.train(True)
-    #     batch.load_test_data(test, y_test)
-    #     incremental.load_test_data(test, y_test)
-    #     batch.test()
-    #     incremental.test()
+    for rate in (0.5, 0.1, 0.01, 0.001, 0.0001):
+        print "Training with learning rate {}".format(rate)
+        batch = Delta(training, y_train, 100, rate)
+        incremental = Delta(training, y_train, 100, rate)
+        batch.train()
+        incremental.train(True)
+        batch.load_test_data(test, y_test)
+        incremental.load_test_data(test, y_test)
+        batch.test()
+        incremental.test()
 
     # do adaptive and decaying rate modes
     decaying = Delta(training, y_train, 100)
